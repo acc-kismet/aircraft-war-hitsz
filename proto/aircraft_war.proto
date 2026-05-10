@@ -1,0 +1,269 @@
+syntax = "proto3";
+
+// Aircraft War 多人联机协议。
+// 只用于 Protobuf 编解码，不用于 gRPC。
+package hitsz.aircraftwar.backend;
+
+option go_package = "github.com/acc1111/aircraft-war-hitsz/backend/proto;pb";
+
+// 房间状态。房间只有在两名玩家都结束后才会进入 FINISHED。
+enum RoomStatus {
+  ROOM_STATUS_UNSPECIFIED = 0;
+  ROOM_STATUS_WAITING = 1;
+  ROOM_STATUS_FULL = 2;
+  ROOM_STATUS_READY = 3;
+  ROOM_STATUS_PLAYING = 4;
+  ROOM_STATUS_FINISHED = 5;
+}
+
+// 玩家在房间内的生命周期状态。
+enum PlayerStatus {
+  PLAYER_STATUS_UNSPECIFIED = 0;
+  PLAYER_STATUS_JOINED = 1;
+  PLAYER_STATUS_READY = 2;
+  PLAYER_STATUS_PLAYING = 3;
+  PLAYER_STATUS_FINISHED = 4;
+}
+
+// 敌机类型。服务端应以该类型为准计算得分。
+enum EnemyType {
+  ENEMY_TYPE_UNSPECIFIED = 0;
+  ENEMY_TYPE_MOB = 1;
+  ENEMY_TYPE_ELITE = 2;
+  ENEMY_TYPE_BOSS = 3;
+}
+
+// 房间共享难度。单机可继续使用本地难度字符串，但联机房间必须使用统一枚举同步。
+enum RoomDifficulty {
+  ROOM_DIFFICULTY_UNSPECIFIED = 0;
+  ROOM_DIFFICULTY_EASY = 1;
+  ROOM_DIFFICULTY_NORMAL = 2;
+  ROOM_DIFFICULTY_HARD = 3;
+}
+
+// 从当前玩家视角看到的对局结果。
+enum GameResultType {
+  GAME_RESULT_UNSPECIFIED = 0;
+  GAME_RESULT_WIN = 1;
+  GAME_RESULT_LOSE = 2;
+  GAME_RESULT_DRAW = 3;
+}
+
+// 玩家结束原因。用于区分主动正常结束和服务端判定掉线结束。
+enum PlayerFinishReason {
+  PLAYER_FINISH_REASON_UNSPECIFIED = 0;
+  PLAYER_FINISH_REASON_NORMAL = 1;
+  PLAYER_FINISH_REASON_DISCONNECTED = 2;
+}
+
+// 房间中的玩家基础信息。
+message Player {
+  string username = 1;
+  PlayerStatus status = 2;
+  bool is_host = 3;
+  string avatar_id = 4;
+}
+
+// 房间基础信息。双人房间通过 players 表达当前成员。
+message Room {
+  string room_id = 1;
+  RoomStatus status = 2;
+  repeated Player players = 3;
+  RoomDifficulty difficulty = 4;
+}
+
+// 房间内单个玩家的实时分数状态。
+// 用于比分广播和状态恢复查询。
+message RoomPlayerScore {
+  string username = 1;
+  int32 score = 2;
+  bool finished = 3;
+  PlayerStatus status = 4;
+  PlayerFinishReason finish_reason = 5;
+}
+
+// 一局对战的最终结果快照。
+message RoomResult {
+  string room_id = 1;
+  string player_a_username = 2;
+  string player_b_username = 3;
+  int32 player_a_score = 4;
+  int32 player_b_score = 5;
+  string winner_username = 6;
+  GameResultType self_result = 7;
+  int64 finished_at = 8;
+  PlayerFinishReason player_a_finish_reason = 9;
+  PlayerFinishReason player_b_finish_reason = 10;
+}
+
+// 全服排行榜条目。按 best_score 排序。
+message LeaderboardEntry {
+  string username = 1;
+  int32 best_score = 2;
+  int32 win_count = 3;
+  int32 game_count = 4;
+  int64 updated_at = 5;
+  string avatar_id = 6;
+}
+
+// HTTP: 创建房间。
+message CreateRoomRequest {
+  string username = 1;
+  string avatar_id = 2;
+  RoomDifficulty difficulty = 3;
+}
+
+message CreateRoomResponse {
+  Room room = 1;
+  Player self = 2;
+}
+
+// HTTP: 加入房间。
+message JoinRoomRequest {
+  string room_id = 1;
+  string username = 2;
+  string avatar_id = 3;
+}
+
+message JoinRoomResponse {
+  Room room = 1;
+  Player self = 2;
+}
+
+// HTTP: 玩家准备。
+message ReadyRoomRequest {
+  string room_id = 1;
+  string username = 2;
+}
+
+message ReadyRoomResponse {
+  Room room = 1;
+}
+
+// HTTP: 房主更新房间共享难度。
+message UpdateRoomDifficultyRequest {
+  string room_id = 1;
+  string username = 2;
+  RoomDifficulty difficulty = 3;
+}
+
+message UpdateRoomDifficultyResponse {
+  Room room = 1;
+}
+
+// HTTP: 房主开始游戏。
+message StartGameRequest {
+  string room_id = 1;
+  string username = 2;
+}
+
+message StartGameResponse {
+  Room room = 1;
+  bool started = 2;
+}
+
+// HTTP: 查询房间最终结算。
+message GetRoomResultRequest {
+  string room_id = 1;
+  string username = 2;
+}
+
+message GetRoomResultResponse {
+  RoomResult result = 1;
+}
+
+// HTTP: 查询房间当前状态。
+// 用于掉线玩家恢复网络后确认自己是否已被判定结束。
+message GetRoomStateRequest {
+  string room_id = 1;
+  string username = 2;
+}
+
+message GetRoomStateResponse {
+  // 房间基础状态。
+  Room room = 1;
+  // 双方当前分数和结束状态。
+  repeated RoomPlayerScore scores = 2;
+  // 房间是否已经整体结束。
+  bool room_finished = 3;
+  // 若房间已结束，可直接附带结算结果。
+  RoomResult result = 4;
+}
+
+// HTTP: 查询全服排行榜。
+message GetLeaderboardRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message GetLeaderboardResponse {
+  repeated LeaderboardEntry entries = 1;
+}
+
+// WS: 玩家击败敌机事件。
+// score_delta 只用于日志或调试，服务端应以 enemy_type 为准计分。
+message PlayerDefeatEvent {
+  string room_id = 1;
+  string username = 2;
+  EnemyType enemy_type = 3;
+  int32 score_delta = 4;
+  string client_event_id = 5;
+}
+
+// WS: 对战期心跳。
+// 建议每 3 秒发送一次；服务端 9 秒超时，额外复检 3 秒。
+message PlayerHeartbeatEvent {
+  string room_id = 1;
+  string username = 2;
+  // 客户端发送心跳时的本地时间戳，便于排查延迟和抖动。
+  int64 client_sent_at = 3;
+  // 客户端递增序号，便于埋点排查丢包或乱序。
+  int64 sequence = 4;
+}
+
+// WS: 玩家主动上报本地游戏结束。
+message PlayerGameOverEvent {
+  string room_id = 1;
+  string username = 2;
+  int32 final_score = 3;
+  string reason = 4;
+}
+
+// WS: 服务端广播房间最新比分。
+// 即使一名玩家已掉线结束，只要房间未结束，仍继续广播另一名玩家分数变化。
+message ScoreBroadcast {
+  string room_id = 1;
+  repeated RoomPlayerScore scores = 2;
+  int64 updated_at = 3;
+}
+
+// WS: 服务端广播完整房间状态快照。
+// 用于房间成员变化、准备状态变化、开始、结束以及重连后状态恢复。
+message RoomStateBroadcast {
+  Room room = 1;
+  repeated RoomPlayerScore scores = 2;
+  bool room_finished = 3;
+  RoomResult result = 4;
+  int64 updated_at = 5;
+}
+
+// WS: 当两名玩家都结束后，服务端广播整局最终完成。
+message GameFinishedBroadcast {
+  string room_id = 1;
+  bool finished = 2;
+  RoomResult result = 3;
+}
+
+// WS: WebSocket 二进制帧统一包裹消息。
+// 一条 WebSocket binary frame 对应一个 WsMessage。
+// 客户端与服务端都只通过该消息承载具体的 WS 事件载荷。
+message WsMessage {
+  oneof payload {
+    PlayerHeartbeatEvent player_heartbeat_event = 1;
+    PlayerDefeatEvent player_defeat_event = 2;
+    PlayerGameOverEvent player_game_over_event = 3;
+    ScoreBroadcast score_broadcast = 4;
+    GameFinishedBroadcast game_finished_broadcast = 5;
+    RoomStateBroadcast room_state_broadcast = 6;
+  }
+}

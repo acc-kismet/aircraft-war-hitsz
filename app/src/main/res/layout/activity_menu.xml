@@ -41,9 +41,144 @@
                 android:padding="14dp">
 
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/multiplayer_title"
+                    android:textColor="@color/ui2_accent"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/input_base_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/ui_input_bg"
+                    android:hint="@string/multiplayer_base_url_hint"
+                    android:inputType="textUri"
+                    android:maxLines="1"
+                    android:textColor="@color/ui2_title"
+                    android:textColorHint="@color/ui2_muted" />
+
+                <EditText
+                    android:id="@+id/input_username"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/ui_input_bg"
+                    android:hint="@string/multiplayer_username_hint"
+                    android:inputType="textPersonName"
+                    android:maxLines="1"
+                    android:textColor="@color/ui2_title"
+                    android:textColorHint="@color/ui2_muted" />
+
+                <TextView
+                    android:id="@+id/menu_avatar_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/multiplayer_avatar_title"
+                    android:textColor="@color/ui2_accent"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/menu_avatar_container"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+
+                <EditText
+                    android:id="@+id/input_room_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/ui_input_bg"
+                    android:hint="@string/multiplayer_room_id_hint"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textColor="@color/ui2_title"
+                    android:textColorHint="@color/ui2_muted" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/button_create_room"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/ui2_button_chip"
+                        android:text="@string/multiplayer_create_room"
+                        android:textAllCaps="false"
+                        android:textColor="@color/ui2_title" />
+
+                    <Button
+                        android:id="@+id/button_join_room"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/ui2_button_chip"
+                        android:text="@string/multiplayer_join_room"
+                        android:textAllCaps="false"
+                        android:textColor="@color/ui2_title" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/button_ready_room"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/ui2_button_chip"
+                        android:text="@string/multiplayer_ready_room"
+                        android:textAllCaps="false"
+                        android:textColor="@color/ui2_title" />
+
+                    <Button
+                        android:id="@+id/button_sync_room_state"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/ui2_button_chip"
+                        android:text="@string/multiplayer_sync_state"
+                        android:textAllCaps="false"
+                        android:textColor="@color/ui2_title" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/text_room_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/multiplayer_room_status_default"
+                    android:textColor="@color/ui2_body"
+                    android:textSize="13sp" />
+
+                <TextView
                     android:id="@+id/text_difficulty_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
                     android:text="@string/menu_difficulty"
                     android:textColor="@color/ui2_accent"
                     android:textSize="15sp"
@@ -109,6 +244,16 @@
                     android:lineSpacingExtra="2dp"
                     android:textColor="@color/ui2_body"
                     android:textSize="13sp" />
+
+                <ToggleButton
+                    android:id="@+id/button_sound_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/ui2_button_chip"
+                    android:textOff="@string/sound_off"
+                    android:textOn="@string/sound_on"
+                    android:textColor="@color/ui2_title" />
 
                 <Button
                     android:id="@+id/button_start"

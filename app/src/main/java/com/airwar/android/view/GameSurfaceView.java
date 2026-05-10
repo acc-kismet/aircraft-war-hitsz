@@ -49,6 +49,7 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public void setDifficulty(String difficulty) {
         DifficultyLevel parsed = parseDifficulty(difficulty);
         synchronized (engineLock) {
+            spriteRepository.setDifficulty(difficulty, getContext());
             if (renderThread == null) {
                 difficultyLevel = parsed;
                 engine = GameEngine.create(difficultyLevel);
@@ -177,6 +178,17 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         if (snapshotListener != null) {
             post(() -> snapshotListener.onSnapshot(snapshot));
         }
+    }
+
+    public void refreshAudioTrack() {
+        if (audioManager == null) {
+            return;
+        }
+        if (bossAudioActive) {
+            audioManager.playBgmBoss();
+            return;
+        }
+        audioManager.playBgmGame();
     }
 
     public interface SnapshotListener {

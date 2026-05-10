@@ -44,40 +44,21 @@
                     android:textColor="@color/ui2_body"
                     android:textSize="16sp" />
 
-                <EditText
-                    android:id="@+id/game_over_name_input"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="16dp"
-                    android:background="@drawable/ui_input_bg"
-                    android:hint="@string/game_over_name_hint"
-                    android:inputType="textPersonName"
-                    android:maxLines="1"
-                    android:textColor="@color/ui2_title"
-                    android:textColorHint="@color/ui2_muted" />
-
                 <TextView
+                    android:id="@+id/game_over_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:text="@string/game_over_avatar_title"
-                    android:textColor="@color/ui2_accent"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/ui2_body"
+                    android:textSize="15sp" />
 
-                <HorizontalScrollView
-                    android:id="@+id/game_over_avatar_scroller"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/game_over_opponent_status"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:scrollbars="none">
-
-                    <LinearLayout
-                        android:id="@+id/game_over_avatar_container"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal" />
-                </HorizontalScrollView>
+                    android:layout_marginTop="6dp"
+                    android:textColor="@color/ui2_muted"
+                    android:textSize="14sp" />
 
                 <Button
                     android:id="@+id/game_over_submit_button"

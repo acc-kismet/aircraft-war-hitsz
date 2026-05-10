@@ -8,19 +8,25 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.airwar.android.R;
-import com.airwar.android.storage.AndroidScoreDao;
-import com.airwar.android.storage.GameScore;
+import com.airwar.android.net.MultiplayerApi;
+import com.airwar.android.net.NetworkConfig;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import hitsz.aircraftwar.backend.AircraftWar;
 
 public class LeaderboardActivity extends AppCompatActivity {
-    public static final String EXTRA_DIFFICULTY = "extra_difficulty";
+    private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
+    private final MultiplayerApi multiplayerApi = new MultiplayerApi();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,11 +38,7 @@ public class LeaderboardActivity extends AppCompatActivity {
         LinearLayout top3Container = findViewById(R.id.leaderboard_top3_container);
         LinearLayout listContainer = findViewById(R.id.leaderboard_list_container);
         Button backToMenuButton = findViewById(R.id.leaderboard_back_menu_button);
-        String difficulty = getIntent().getStringExtra(EXTRA_DIFFICULTY);
-        if (difficulty == null || difficulty.trim().isEmpty()) {
-            difficulty = MenuActivity.DIFFICULTY_NORMAL;
-        }
-        title.setText(getString(R.string.leaderboard_title_with_difficulty, readableDifficulty(difficulty)));
+        title.setText(getString(R.string.leaderboard_title_global));
         bindBottomNav();
 
         backToMenuButton.setOnClickListener(v -> {
@@ -46,37 +48,13 @@ public class LeaderboardActivity extends AppCompatActivity {
             finish();
         });
 
-        AndroidScoreDao dao = new AndroidScoreDao(this);
-        List<GameScore> scores = dao.readScoresSortedByDifficulty(difficulty);
+        loadLeaderboard(emptyText, top3Container, listContainer);
+    }
 
-        if (scores.isEmpty()) {
-            emptyText.setVisibility(View.VISIBLE);
-            return;
-        }
-
-        emptyText.setVisibility(View.GONE);
-        top3Container.removeAllViews();
-        listContainer.removeAllViews();
-
-        for (int i = 0; i < scores.size(); i++) {
-            GameScore gameScore = scores.get(i);
-            int rank = i + 1;
-            if (rank <= 3) {
-                top3Container.addView(createTopRankCard(rank, gameScore));
-            } else {
-                View row = getLayoutInflater().inflate(R.layout.comp_rank_row, listContainer, false);
-                TextView rankView = row.findViewById(R.id.rank_index);
-                ImageView avatarView = row.findViewById(R.id.rank_avatar);
-                TextView nameView = row.findViewById(R.id.rank_name);
-                TextView scoreView = row.findViewById(R.id.rank_score);
-
-                rankView.setText(String.format(Locale.ROOT, "%02d", rank));
-                avatarView.setImageResource(PilotAvatarRegistry.drawableFor(gameScore.getAvatarId()));
-                nameView.setText(gameScore.getName());
-                scoreView.setText(String.valueOf(gameScore.getScore()));
-                listContainer.addView(row);
-            }
-        }
+    @Override
+    protected void onDestroy() {
+        ioExecutor.shutdownNow();
+        super.onDestroy();
     }
 
     private void bindBottomNav() {
@@ -97,7 +75,66 @@ public class LeaderboardActivity extends AppCompatActivity {
         });
     }
 
-    private View createTopRankCard(int rank, GameScore score) {
+    private void loadLeaderboard(TextView emptyText, LinearLayout top3Container, LinearLayout listContainer) {
+        String baseUrl = LocalMultiplayerPrefs.getBaseUrl(this);
+        ioExecutor.execute(() -> {
+            try {
+                // 排行榜已切换为真实后端数据源，不再读取本地 CSV。
+                AircraftWar.GetLeaderboardResponse response = multiplayerApi.getLeaderboard(
+                        NetworkConfig.normalizeBaseUrl(baseUrl),
+                        50,
+                        0
+                );
+                UiExecutor.run(this, () -> renderLeaderboard(response.getEntriesList(), emptyText, top3Container, listContainer));
+            } catch (IOException e) {
+                UiExecutor.run(this, () -> {
+                    emptyText.setVisibility(View.VISIBLE);
+                    emptyText.setText(getString(R.string.leaderboard_load_failed));
+                    top3Container.removeAllViews();
+                    listContainer.removeAllViews();
+                    Toast.makeText(this, e.getMessage() == null ? "排行榜加载失败" : e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+    private void renderLeaderboard(
+            List<AircraftWar.LeaderboardEntry> entries,
+            TextView emptyText,
+            LinearLayout top3Container,
+            LinearLayout listContainer
+    ) {
+        if (entries.isEmpty()) {
+            emptyText.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        emptyText.setVisibility(View.GONE);
+        top3Container.removeAllViews();
+        listContainer.removeAllViews();
+
+        for (int i = 0; i < entries.size(); i++) {
+            AircraftWar.LeaderboardEntry entry = entries.get(i);
+            int rank = i + 1;
+            if (rank <= 3) {
+                top3Container.addView(createTopRankCard(rank, entry));
+            } else {
+                View row = getLayoutInflater().inflate(R.layout.comp_rank_row, listContainer, false);
+                TextView rankView = row.findViewById(R.id.rank_index);
+                ImageView avatarView = row.findViewById(R.id.rank_avatar);
+                TextView nameView = row.findViewById(R.id.rank_name);
+                TextView scoreView = row.findViewById(R.id.rank_score);
+
+                rankView.setText(String.format(java.util.Locale.ROOT, "%02d", rank));
+                avatarView.setImageResource(PilotAvatarRegistry.drawableFor(entry.getAvatarId()));
+                nameView.setText(entry.getUsername());
+                scoreView.setText(String.valueOf(entry.getBestScore()));
+                listContainer.addView(row);
+            }
+        }
+    }
+
+    private View createTopRankCard(int rank, AircraftWar.LeaderboardEntry entry) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.HORIZONTAL);
         card.setPadding(dp(12), dp(12), dp(12), dp(12));
@@ -125,20 +162,20 @@ public class LeaderboardActivity extends AppCompatActivity {
         avatar.setBackgroundResource(R.drawable.ui2_avatar_border_selected);
         avatar.setPadding(dp(2), dp(2), dp(2), dp(2));
         avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        avatar.setImageResource(PilotAvatarRegistry.drawableFor(score.getAvatarId()));
+        avatar.setImageResource(PilotAvatarRegistry.drawableFor(entry.getAvatarId()));
 
         LinearLayout textWrap = new LinearLayout(this);
         textWrap.setOrientation(LinearLayout.VERTICAL);
         textWrap.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
         TextView name = new TextView(this);
-        name.setText(score.getName());
+        name.setText(entry.getUsername());
         name.setTextColor(ContextCompat.getColor(this, R.color.ui2_title));
         name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         name.setTypeface(name.getTypeface(), android.graphics.Typeface.BOLD);
 
         TextView duration = new TextView(this);
-        duration.setText(getString(R.string.game_over_duration_format, score.getDurationSec()));
+        duration.setText(getString(R.string.leaderboard_win_count_format, entry.getWinCount(), entry.getGameCount()));
         duration.setTextColor(ContextCompat.getColor(this, R.color.ui2_muted));
         duration.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
 
@@ -146,7 +183,7 @@ public class LeaderboardActivity extends AppCompatActivity {
         textWrap.addView(duration);
 
         TextView scoreText = new TextView(this);
-        scoreText.setText(String.valueOf(score.getScore()));
+        scoreText.setText(String.valueOf(entry.getBestScore()));
         scoreText.setTextColor(ContextCompat.getColor(this, R.color.ui2_accent));
         scoreText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         scoreText.setTypeface(scoreText.getTypeface(), android.graphics.Typeface.BOLD);
@@ -164,13 +201,5 @@ public class LeaderboardActivity extends AppCompatActivity {
                 value,
                 getResources().getDisplayMetrics()
         );
-    }
-
-    private String readableDifficulty(String difficulty) {
-        return switch (difficulty.toLowerCase(Locale.ROOT)) {
-            case MenuActivity.DIFFICULTY_EASY -> getString(R.string.difficulty_label_easy);
-            case MenuActivity.DIFFICULTY_HARD -> getString(R.string.difficulty_label_hard);
-            default -> getString(R.string.difficulty_label_normal);
-        };
     }
 }

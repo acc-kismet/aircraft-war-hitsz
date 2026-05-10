@@ -3,41 +3,83 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="top"
+    android:layout_margin="10dp"
     android:background="@drawable/ui_panel"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:padding="10dp"
-    android:layout_margin="10dp">
+    android:orientation="vertical"
+    android:padding="10dp">
 
-    <ImageView
-        android:layout_width="18dp"
-        android:layout_height="18dp"
-        android:layout_marginEnd="6dp"
-        android:src="@drawable/ic_score"
-        android:contentDescription="@null" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginEnd="6dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_score" />
+
+        <TextView
+            android:id="@+id/hud_score"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/hud_score_default"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:textColor="@color/ui_text_title" />
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginEnd="6dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_heart" />
+
+        <TextView
+            android:id="@+id/hud_hp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/hud_hp_default"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:textColor="@color/ui_text_title" />
+
+        <TextView
+            android:id="@+id/hud_room_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/hud_room_state_default"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="@color/ui_text_title" />
+
+        <ToggleButton
+            android:id="@+id/hud_sound_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="10dp"
+            android:minWidth="72dp"
+            android:textOff="@string/sound_off"
+            android:textOn="@string/sound_on" />
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/hud_score"
-        android:layout_width="0dp"
+        android:id="@+id/hud_multiplayer_self_score"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="@string/hud_score_default"
-        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+        android:layout_marginTop="8dp"
+        android:text="@string/hud_multiplayer_self_default"
+        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
         android:textColor="@color/ui_text_title" />
-
-    <ImageView
-        android:layout_width="18dp"
-        android:layout_height="18dp"
-        android:layout_marginEnd="6dp"
-        android:src="@drawable/ic_heart"
-        android:contentDescription="@null" />
 
     <TextView
-        android:id="@+id/hud_hp"
-        android:layout_width="wrap_content"
+        android:id="@+id/hud_multiplayer_opponent_score"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/hud_hp_default"
-        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-        android:textColor="@color/ui_text_title" />
+        android:layout_marginTop="2dp"
+        android:text="@string/hud_multiplayer_opponent_default"
+        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+        android:textColor="@color/ui_text_body" />
 
 </LinearLayout>

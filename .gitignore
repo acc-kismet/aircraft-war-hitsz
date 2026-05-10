@@ -36,3 +36,6 @@ hs_err_pid*
 .gradle/
 **/build/
 local.properties
+
+# Local git worktrees
+.worktrees/

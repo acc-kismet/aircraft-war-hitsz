@@ -83,4 +83,12 @@ class GameEngineBattleSnapshotTest {
         GameStateSnapshot after = engine.getSnapshot();
         assertTrue(after.heroBullets().stream().anyMatch(b -> "hero_bullet".equals(b.type())));
     }
+
+    @Test
+    void localEnemyScoreRulesMatchAuthoritativeMultiplayerValues() {
+        assertEquals(10, GameEngine.scoreForEnemyType("mob"));
+        assertEquals(20, GameEngine.scoreForEnemyType("elite"));
+        assertEquals(50, GameEngine.scoreForEnemyType("boss"));
+        assertEquals(10, GameEngine.scoreForEnemyType("unknown"));
+    }
 }

@@ -8,9 +8,11 @@ import android.graphics.Paint;
 
 import com.airwar.android.R;
 
+import java.util.Locale;
+
 public final class SpriteRepository {
     private final Paint textPaint;
-    private final Bitmap background;
+    private Bitmap background;
     private final Bitmap hero;
     private final Bitmap mobEnemy;
     private final Bitmap bossEnemy;
@@ -23,7 +25,7 @@ public final class SpriteRepository {
     private final Paint explosionPaint;
 
     public SpriteRepository(Context context) {
-        background = decode(context, R.drawable.bg);
+        background = decode(context, backgroundResForDifficulty("normal"));
         hero = decode(context, R.drawable.hero);
         mobEnemy = decode(context, R.drawable.mob);
         bossEnemy = decode(context, R.drawable.boss);
@@ -44,6 +46,10 @@ public final class SpriteRepository {
 
     public Bitmap background() {
         return background;
+    }
+
+    public void setDifficulty(String difficulty, Context context) {
+        background = decode(context, backgroundResForDifficulty(difficulty));
     }
 
     public Bitmap hero() {
@@ -88,6 +94,17 @@ public final class SpriteRepository {
 
     public Paint textPaint() {
         return textPaint;
+    }
+
+    static int backgroundResForDifficulty(String difficulty) {
+        if (difficulty == null) {
+            return R.drawable.bg3;
+        }
+        return switch (difficulty.toLowerCase(Locale.ROOT)) {
+            case "easy" -> R.drawable.bg2;
+            case "hard" -> R.drawable.bg5;
+            default -> R.drawable.bg3;
+        };
     }
 
     private static Bitmap decode(Context context, int resId) {

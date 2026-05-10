@@ -86,7 +86,12 @@ public class AndroidAudioManager {
         this.enabled = enabled;
         if (!enabled) {
             backend.stopAllBgm();
+            activeTrack = BgmTrack.NONE;
         }
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     public boolean isBgmPlaying() {

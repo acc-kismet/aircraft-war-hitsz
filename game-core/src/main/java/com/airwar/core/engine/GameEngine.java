@@ -146,6 +146,16 @@ public final class GameEngine {
         return heroShootMode;
     }
 
+    public static int scoreForEnemyType(String enemyType) {
+        if ("boss".equals(enemyType)) {
+            return 50;
+        }
+        if ("elite".equals(enemyType)) {
+            return 20;
+        }
+        return 10;
+    }
+
     private void phase(String name) {
         debugHook.accept(name);
     }
@@ -207,7 +217,7 @@ public final class GameEngine {
                     hitEvents++;
                     if (enemy.hp <= 0) {
                         enemy.active = false;
-                        score += enemy.type.equals("boss") ? 100 : 20;
+                        score += scoreForEnemyType(enemy.type);
                         explosionEvents++;
                         spawnExplosion(enemy.x, enemy.y, enemy.type.equals("boss") ? 500L : 280L, "explosion_enemy");
                         maybeDropProp(enemy.x, enemy.y, enemy.type);
@@ -363,7 +373,7 @@ public final class GameEngine {
                         enemy.active = false;
                         explosionEvents++;
                         spawnExplosion(enemy.x, enemy.y, 220L, "explosion_enemy");
-                        score += 20;
+                        score += scoreForEnemyType(enemy.type);
                     }
                 }
                 enemyBullets.clear();
