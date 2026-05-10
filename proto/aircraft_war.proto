@@ -4,7 +4,7 @@ syntax = "proto3";
 // 只用于 Protobuf 编解码，不用于 gRPC。
 package hitsz.aircraftwar.backend;
 
-option go_package = "github.com/acc1111/aircraft-war-hitsz/backend/pb;pb";
+option go_package = "github.com/acc1111/aircraft-war-hitsz/backend/proto;pb";
 
 // 房间状态。房间只有在两名玩家都结束后才会进入 FINISHED。
 enum RoomStatus {
